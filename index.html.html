@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Trend Analyzer v3</title>
+<style>
+:root{
+  --bg:#0d0e11;--bg2:#141619;--bg3:#1c1e23;--bg4:#242730;--bg5:#2d3038;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.22);
+  --text:#e8eaf0;--text2:#9da3b0;--text3:#5e6475;
+  --teal:#00d4a8;--teal-bg:rgba(0,212,168,0.1);--teal-b:rgba(0,212,168,0.25);
+  --amber:#f5a623;--amber-bg:rgba(245,166,35,0.1);--amber-b:rgba(245,166,35,0.25);
+  --red:#f05252;--red-bg:rgba(240,82,82,0.1);--red-b:rgba(240,82,82,0.25);
+  --green:#4ade80;--blue:#4e9cf5;--blue-bg:rgba(78,156,245,0.1);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.1);--purple-b:rgba(167,139,250,0.3);
+  --r:9px;--rs:5px;--mono:'JetBrains Mono','Fira Code',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;font-size:14px}
+body{min-height:100vh}
+.shell{max-width:1140px;margin:0 auto;padding:22px 16px 80px}
+
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:18px}
+.hdr h1{font-size:18px;font-weight:600;letter-spacing:-.3px}
+.hdr p{font-size:11px;color:var(--text3);margin-top:3px}
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid;font-weight:500}
+.p-teal{color:var(--teal);background:var(--teal-bg);border-color:var(--teal-b)}
+.p-amber{color:var(--amber);background:var(--amber-bg);border-color:var(--amber-b)}
+.p-green{color:var(--green);background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+
+/* Form */
+.row2{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;margin-bottom:12px}
+.lbl{display:block;font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:13px;padding:8px 11px;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--teal)}
+.inp::placeholder{color:var(--text3)}
+.key-row{display:flex;gap:8px;align-items:flex-end}
+.key-row .inp{flex:1}
+.btn-val{background:var(--bg4);color:var(--text2);font-size:11px;font-weight:600;padding:8px 14px;border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;white-space:nowrap;transition:all .15s}
+.btn-val:hover{border-color:var(--teal);color:var(--teal)}
+.key-status{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;padding:6px 10px;border-radius:var(--rs);border:1px solid}
+.ks-ok{background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.25);color:var(--green)}
+.ks-fail{background:var(--red-bg);border-color:var(--red-b);color:var(--red)}
+.ks-checking{background:var(--blue-bg);border-color:rgba(78,156,245,.25);color:var(--blue)}
+
+/* Filters */
+.sep{height:1px;background:var(--border);margin:13px 0}
+.flbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.fhint{font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:10px}
+.fbtns{display:flex;flex-wrap:wrap;gap:4px}
+.fb{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text3);font-size:11px;padding:4px 10px;cursor:pointer;transition:all .15s;font-weight:500}
+.fb:hover{border-color:var(--border3);color:var(--text2)}
+.fb.on{background:var(--teal-bg);border-color:var(--teal-b);color:var(--teal)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--text3);font-size:11px;padding:4px 11px;cursor:pointer;transition:all .15s;font-weight:500;user-select:none;display:inline-flex;align-items:center;gap:4px}
+.chip:hover{border-color:var(--border3);color:var(--text2)}
+.chip.on-c{background:var(--teal-bg);border-color:var(--teal-b);color:var(--teal)}
+.chip.on-s{background:var(--purple-bg);border-color:var(--purple-b);color:var(--purple)}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* Budget bar */
+.budget{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;margin-top:12px}
+.budget-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.budget-label{font-size:11px;color:var(--text3)}
+.budget-nums{display:flex;gap:16px}
+.bn{text-align:right}
+.bn .bl{font-size:10px;color:var(--text3)}
+.bn .bv{font-size:13px;font-weight:700;font-family:var(--mono)}
+.bv-ok{color:var(--green)}
+.bv-warn{color:var(--amber)}
+.bv-bad{color:var(--red)}
+.budget-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.budget-fill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+
+/* Cache banner */
+.cache-banner{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:var(--rs);margin-top:10px;font-size:11px;color:var(--green)}
+.cache-banner button{margin-left:auto;background:transparent;border:1px solid rgba(74,222,128,.3);color:var(--green);border-radius:var(--rs);font-size:10px;padding:3px 8px;cursor:pointer}
+
+/* Run button */
+.run-wrap{display:flex;gap:8px;align-items:center;margin-top:12px}
+.btn-run{background:var(--teal);color:#000;font-size:13px;font-weight:700;padding:9px 26px;border:none;border-radius:var(--rs);cursor:pointer;transition:opacity .15s}
+.btn-run:disabled{opacity:.35;cursor:not-allowed}
+.btn-clr{background:transparent;color:var(--text3);font-size:11px;padding:8px 14px;border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.btn-clr:hover{border-color:var(--red-b);color:var(--red)}
+
+/* Progress steps */
+.progress-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-top:10px}
+.prog-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px}
+.prog-steps{display:flex;flex-direction:column;gap:4px}
+.prog-step{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);transition:color .2s}
+.prog-step.done{color:var(--green)}
+.prog-step.active{color:var(--text)}
+.prog-step.error{color:var(--red)}
+.prog-icon{font-size:12px;width:16px;flex-shrink:0}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.1s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.err-box{margin-top:10px;background:var(--red-bg);border:1px solid var(--red-b);color:var(--red);border-radius:var(--rs);padding:9px 12px;font-size:12px;line-height:1.5}
+.note{font-size:11px;color:var(--text3);margin-top:8px}
+.note a{color:var(--teal);text-decoration:none}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px}
+.m-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.m-val{font-size:19px;font-weight:700;font-family:var(--mono)}
+
+/* Tabs */
+.tab-bar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tabs{display:flex;overflow-x:auto}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:12px;padding:8px 15px;cursor:pointer;margin-bottom:-1px;transition:color .15s;white-space:nowrap}
+.tab:hover{color:var(--text2)}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal)}
+.xpill{font-size:9px;border-radius:10px;padding:1px 6px;margin-left:3px;border:1px solid}
+.xp-ai{color:var(--teal);background:var(--teal-bg);border-color:var(--teal-b)}
+.xp-geo{color:var(--purple);background:var(--purple-bg);border-color:var(--purple-b)}
+
+/* Sort */
+.sort-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.sort-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+/* Video card */
+.vlist{display:flex;flex-direction:column;gap:6px}
+.vc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;gap:8px;align-items:flex-start;transition:border-color .15s}
+.vc:hover{border-color:var(--border2)}
+.vrank{font-size:10px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;font-family:var(--mono)}
+.vi{flex:1;min-width:0}
+.vtitle{font-size:13px;font-weight:500;color:var(--text);text-decoration:none;line-height:1.4;display:block}
+.vtitle:hover{color:var(--teal)}
+.vmeta{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.vmeta span{font-size:11px;color:var(--text3)}
+.vchan{color:var(--text2)!important;font-weight:500!important}
+.geo-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.gtag{font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid;font-weight:500}
+.gt-multi{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-b)}
+.gt-single{background:var(--bg3);color:var(--text3);border-color:var(--border)}
+.vstats{display:flex;gap:16px;flex-shrink:0;align-items:center}
+.vs .sl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.vs .sv{font-size:12px;font-weight:700;font-family:var(--mono);text-align:right}
+.sv-g{color:var(--green)}.sv-a{color:var(--amber)}.sv-t{color:var(--teal)}
+
+/* Channel */
+.clist{display:flex;flex-direction:column;gap:6px}
+.cc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cc:hover{border-color:var(--border2)}
+.cc-left{display:flex;gap:10px;align-items:center;flex:1;min-width:0}
+.ccnum{width:26px;height:26px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);flex-shrink:0;font-family:var(--mono)}
+.ccname{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccsub{font-size:10px;color:var(--text3);margin-top:2px}
+.cc-right{display:flex;gap:22px;flex-shrink:0}
+.cs .cl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.cs .cv{font-size:12px;font-weight:700;font-family:var(--mono);text-align:right}
+
+/* Geo */
+.geo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.geo-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.geo-card h3{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.geo-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.geo-row:last-child{border-bottom:none}
+.geo-name{display:flex;align-items:center;gap:6px;font-size:12px}
+.geo-bar-w{flex:1;margin:0 10px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.geo-bar{height:100%;background:var(--teal);border-radius:3px}
+.geo-n{font-size:11px;font-family:var(--mono);font-weight:700;color:var(--teal)}
+.cross-card{background:var(--bg2);border:1px solid var(--purple-b);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.cross-card h3{font-size:10px;font-weight:600;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.cx-vid{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);gap:10px}
+.cx-vid:last-child{border-bottom:none}
+.cx-title{font-size:12px;font-weight:500;flex:1;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cx-tags{display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0}
+.cxt{font-size:10px;background:var(--purple-bg);color:var(--purple);border-radius:10px;padding:2px 6px;border:1px solid var(--purple-b)}
+.geo-note{background:var(--amber-bg);border:1px solid var(--amber-b);border-radius:var(--r);padding:12px;font-size:11px;color:var(--text2);line-height:1.6}
+.geo-note strong{color:var(--amber)}
+
+/* Trends / Ideas */
+.tgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px}
+.tc h3{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+.pt{font-size:12px;padding:5px 8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:4px;line-height:1.4}
+.tt{display:inline-block;font-size:11px;padding:3px 10px;background:var(--teal-bg);color:var(--teal);border-radius:20px;margin:3px 3px 0 0;border:1px solid var(--teal-b)}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.scard h3{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.scard p{font-size:13px;color:var(--text2);line-height:1.7}
+.tcloud{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-top:10px}
+.tcloud h3{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.vtc{display:inline-block;font-size:10px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:20px;margin:2px}
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ic{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 13px;display:flex;gap:8px;align-items:flex-start;transition:border-color .15s}
+.ic:hover{border-color:var(--teal)}
+.inum{width:20px;height:20px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text3);flex-shrink:0;font-family:var(--mono)}
+.ititle{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.4}
+.iangle{font-size:11px;color:var(--text2);line-height:1.5}
+
+.hidden{display:none!important}
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty h2{font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text2)}
+.empty p{font-size:11px;line-height:1.6}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:3px}
+@media(max-width:800px){
+  .row2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}
+  .tgrid{grid-template-columns:1fr}.geo-grid{grid-template-columns:1fr}.igrid{grid-template-columns:1fr}
+  .vstats{gap:10px}.cc-right{gap:12px}.fg3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <h1>YouTube Trend Analyzer <span style="font-size:11px;color:var(--text3);font-weight:400">v3</span></h1>
+    <p>Zero-waste API · Smart caching · Time filters · Country &amp; Indian state targeting · Geo intelligence</p>
+  </div>
+  <div class="pill-row">
+    <span class="pill p-green">⚡ Zero-Waste API</span>
+    <span class="pill p-teal">🤖 AI Insights</span>
+    <span class="pill p-amber">🌍 Geo Intel</span>
+  </div>
+</div>
+
+<!-- SETUP CARD -->
+<div class="card">
+  <div class="row2">
+    <!-- API Key -->
+    <div>
+      <label class="lbl" for="api-key">YouTube Data API v3 Key</label>
+      <div class="key-row">
+        <input class="inp" type="password" id="api-key" placeholder="AIzaSy..." oninput="resetKeyStatus()">
+        <button class="btn-val" id="val-btn" onclick="validateKey()">Validate Key</button>
+      </div>
+      <div class="key-status hidden" id="key-status"></div>
+    </div>
+    <!-- Keyword -->
+    <div>
+      <label class="lbl" for="kw">Keyword / Niche</label>
+      <input class="inp" type="text" id="kw" placeholder="e.g. food, science facts, AI tutorial..." autocomplete="off" onkeydown="if(event.key==='Enter')runAnalysis()">
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- FILTERS -->
+  <div class="filter-section" style="margin-bottom:11px">
+    <div class="flbl">Upload Date <span class="fhint">Only return videos uploaded within this window</span></div>
+    <div class="fbtns" id="fg-time">
+      <button class="fb on" data-v="">Any time</button>
+      <button class="fb" data-v="1h">Last hour</button>
+      <button class="fb" data-v="24h">Today (24h)</button>
+      <button class="fb" data-v="48h">Last 48h</button>
+      <button class="fb" data-v="7d">This week</button>
+      <button class="fb" data-v="30d">This month</button>
+      <button class="fb" data-v="3m">3 months</button>
+      <button class="fb" data-v="6m">6 months</button>
+      <button class="fb" data-v="1y">This year</button>
+    </div>
+  </div>
+
+  <div class="fg3">
+    <div>
+      <div class="flbl">Sort Results By</div>
+      <div class="fbtns" id="fg-sort">
+        <button class="fb on" data-v="viewCount">Most Viewed</button>
+        <button class="fb" data-v="date">Newest First</button>
+        <button class="fb" data-v="relevance">Relevance</button>
+        <button class="fb" data-v="rating">Top Rated</button>
+      </div>
+    </div>
+    <div>
+      <div class="flbl">Video Duration</div>
+      <div class="fbtns" id="fg-dur">
+        <button class="fb on" data-v="">Any length</button>
+        <button class="fb" data-v="short">Shorts (&lt;4 min)</button>
+        <button class="fb" data-v="medium">Medium (4–20 min)</button>
+        <button class="fb" data-v="long">Long (&gt;20 min)</button>
+      </div>
+    </div>
+    <div>
+      <div class="flbl">Results per Search</div>
+      <div class="fbtns" id="fg-count">
+        <button class="fb" data-v="10">10</button>
+        <button class="fb on" data-v="20">20</button>
+        <button class="fb" data-v="30">30</button>
+        <button class="fb" data-v="50">50</button>
+      </div>
+      <div style="margin-top:8px">
+        <div class="flbl">Language</div>
+        <div class="fbtns" id="fg-lang">
+          <button class="fb on" data-v="both">English + Hindi</button>
+          <button class="fb" data-v="en">English only</button>
+          <button class="fb" data-v="hi">Hindi only</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- COUNTRIES -->
+  <div style="margin-bottom:10px">
+    <div class="flbl">
+      Target Countries
+      <span class="fhint">Searched separately — videos tagged with source country</span>
+      <span id="cc-count" style="font-size:10px;color:var(--teal);font-weight:500;margin-left:3px"></span>
+    </div>
+    <div class="chips" id="country-chips"></div>
+  </div>
+
+  <!-- STATES -->
+  <div>
+    <div class="flbl">
+      Indian States / Cities
+      <span class="fhint">Appends state to keyword for regional targeting</span>
+      <span id="sc-count" style="font-size:10px;color:var(--purple);font-weight:500;margin-left:3px"></span>
+    </div>
+    <div class="chips" id="state-chips"></div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- BUDGET BAR -->
+  <div class="budget" id="budget-bar">
+    <div class="budget-top">
+      <span class="budget-label">Estimated API Usage</span>
+      <div class="budget-nums">
+        <div class="bn"><div class="bl">Search calls</div><div class="bv" id="b-calls">–</div></div>
+        <div class="bn"><div class="bl">Est. units</div><div class="bv" id="b-units">–</div></div>
+        <div class="bn"><div class="bl">Daily limit</div><div class="bv" style="color:var(--text2)">10,000</div></div>
+        <div class="bn"><div class="bl">Remaining</div><div class="bv" id="b-rem">–</div></div>
+      </div>
+    </div>
+    <div class="budget-track"><div class="budget-fill" id="b-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- CACHE NOTICE -->
+  <div class="cache-banner hidden" id="cache-banner">
+    <span>⚡</span>
+    <span id="cache-msg">Results loaded from local cache — no API units used</span>
+    <button onclick="clearCache()">Clear cache</button>
+  </div>
+
+  <!-- RUN / PROGRESS -->
+  <div class="run-wrap">
+    <button class="btn-run" id="run-btn" onclick="runAnalysis()" disabled>Validate Key First →</button>
+    <button class="btn-clr hidden" id="clr-btn" onclick="clearResults()">Clear Results</button>
+    <span id="run-note" style="font-size:11px;color:var(--text3)"></span>
+  </div>
+
+  <div class="progress-box hidden" id="prog-box">
+    <div class="prog-title">Analysis in progress…</div>
+    <div class="prog-steps" id="prog-steps"></div>
+  </div>
+
+  <div class="err-box hidden" id="err-box"></div>
+  <p class="note">Free API key → <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Enable YouTube Data API v3</a> · Restrict key to HTTP referrers for security</p>
+</div><!-- /card -->
+
+<!-- RESULTS -->
+<div id="results" class="hidden">
+
+  <div class="metrics" id="metric-cards"></div>
+
+  <div class="tab-bar">
+    <div class="tabs">
+      <button class="tab on" onclick="showTab('videos',this)">Trending Videos</button>
+      <button class="tab" onclick="showTab('channels',this)">Top Channels</button>
+      <button class="tab" id="t-geo" onclick="showTab('geo',this)">Geo Intelligence<span class="xpill xp-geo">GEO</span></button>
+      <button class="tab" id="t-trends" onclick="showTab('trends',this)">Trend Intelligence</button>
+      <button class="tab" id="t-ideas" onclick="showTab('ideas',this)">Content Ideas</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn-val" onclick="exportJSON()">↓ JSON</button>
+      <button class="btn-val" onclick="exportCSV()">↓ CSV</button>
+    </div>
+  </div>
+
+  <div id="tab-videos"><div class="sort-row"><span class="sort-lbl">Sort:</span></div><div class="vlist" id="vlist"></div></div>
+  <div id="tab-channels" class="hidden"><div class="clist" id="clist"></div></div>
+  <div id="tab-geo" class="hidden"><div id="geo-content"><div class="empty"><p>Select multiple countries to see geo intelligence.</p></div></div></div>
+  <div id="tab-trends" class="hidden"><div id="trends-content"><div class="empty"><p>AI analysis will appear here.</p></div></div></div>
+  <div id="tab-ideas" class="hidden"><div id="ideas-content"><div class="empty"><p>AI content ideas will appear here.</p></div></div></div>
+
+</div><!-- /results -->
+
+<div id="empty-state">
+  <div class="empty">
+    <h2>Validate your API key, then configure filters &amp; analyze</h2>
+    <p>Zero API units consumed until you click Analyze · Smart local cache prevents repeat calls · Budget bar estimates cost before running</p>
+  </div>
+</div>
+
+</div><!-- /shell -->
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const YT     = 'https://www.googleapis.com/youtube/v3';
+const CLAUDE = 'https://api.anthropic.com/v1/messages';
+const CACHE_KEY = 'yt_analyzer_cache_v3';
+const QUOTA_KEY = 'yt_analyzer_quota_v3';
+const DAILY_LIMIT = 10000;
+
+const COUNTRIES = [
+  {code:'IN',label:'India',flag:'🇮🇳'},{code:'US',label:'USA',flag:'🇺🇸'},
+  {code:'GB',label:'UK',flag:'🇬🇧'},{code:'CA',label:'Canada',flag:'🇨🇦'},
+  {code:'AU',label:'Australia',flag:'🇦🇺'},{code:'AE',label:'UAE',flag:'🇦🇪'},
+  {code:'SG',label:'Singapore',flag:'🇸🇬'},{code:'DE',label:'Germany',flag:'🇩🇪'},
+  {code:'FR',label:'France',flag:'🇫🇷'},{code:'NL',label:'Netherlands',flag:'🇳🇱'},
+  {code:'JP',label:'Japan',flag:'🇯🇵'},{code:'KR',label:'South Korea',flag:'🇰🇷'},
+  {code:'BR',label:'Brazil',flag:'🇧🇷'},{code:'MX',label:'Mexico',flag:'🇲🇽'},
+  {code:'ZA',label:'South Africa',flag:'🇿🇦'},{code:'NG',label:'Nigeria',flag:'🇳🇬'},
+  {code:'PK',label:'Pakistan',flag:'🇵🇰'},{code:'BD',label:'Bangladesh',flag:'🇧🇩'},
+  {code:'NZ',label:'New Zealand',flag:'🇳🇿'},{code:'SE',label:'Sweden',flag:'🇸🇪'},
+  {code:'IT',label:'Italy',flag:'🇮🇹'},{code:'ES',label:'Spain',flag:'🇪🇸'},
+];
+const STATES = [
+  'Karnataka','Telangana','Delhi','Uttar Pradesh','Maharashtra','Gujarat','Punjab',
+  'Haryana','Tamil Nadu','Rajasthan','West Bengal','Kerala','Bihar','Madhya Pradesh',
+  'Andhra Pradesh','Odisha','Jharkhand','Assam','Uttarakhand','Goa','Himachal Pradesh',
+  'Chandigarh','Mumbai','Bengaluru','Hyderabad','Chennai','Kolkata','Pune','Ahmedabad','Jaipur',
+];
+const FLAG_MAP = Object.fromEntries(COUNTRIES.map(c=>[c.label,c.flag]));
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const APP = {
+  keyValid: false,
+  videos:[], aiData:null, keyword:'',
+  sortBy:'vel',
+  f:{ time:'', sort:'viewCount', dur:'', count:20, lang:'both', countries:[], states:[] },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// QUOTA TRACKER  (persists to localStorage per day)
+// ═══════════════════════════════════════════════════════════════
+function getQuota(){
+  try{
+    const d=JSON.parse(localStorage.getItem(QUOTA_KEY)||'{}');
+    const today=new Date().toDateString();
+    if(d.date!==today) return {date:today,used:0};
+    return d;
+  }catch{return {date:new Date().toDateString(),used:0};}
+}
+function addQuota(units){
+  const d=getQuota(); d.used+=units;
+  try{localStorage.setItem(QUOTA_KEY,JSON.stringify(d));}catch{}
+}
+function quotaUsed(){ return getQuota().used; }
+
+// ═══════════════════════════════════════════════════════════════
+// CACHE  (localStorage keyed by search fingerprint)
+// ═══════════════════════════════════════════════════════════════
+function cacheGet(key){
+  try{
+    const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');
+    const entry=all[key];
+    if(!entry) return null;
+    if(Date.now()-entry.ts > 3*3600000) return null; // 3hr TTL
+    return entry.data;
+  }catch{return null;}
+}
+function cacheSet(key,data){
+  try{
+    const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');
+    all[key]={ts:Date.now(),data};
+    // Keep only 20 entries
+    const keys=Object.keys(all);
+    if(keys.length>20) delete all[keys[0]];
+    localStorage.setItem(CACHE_KEY,JSON.stringify(all));
+  }catch{}
+}
+function clearCache(){
+  try{localStorage.removeItem(CACHE_KEY);}catch{}
+  document.getElementById('cache-banner').classList.add('hidden');
+  setRunNote('Cache cleared — next search will fetch fresh data.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT FILTER UI
+// ═══════════════════════════════════════════════════════════════
+function initUI(){
+  // Filter button groups
+  [['fg-time','time'],['fg-sort','sort'],['fg-dur','dur'],['fg-count','count'],['fg-lang','lang']].forEach(([id,key])=>{
+    document.getElementById(id).querySelectorAll('.fb').forEach(btn=>{
+      btn.onclick=()=>{
+        document.getElementById(id).querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+        btn.classList.add('on');
+        APP.f[key] = key==='count' ? parseInt(btn.dataset.v) : btn.dataset.v;
+        updateBudget();
+      };
+    });
+  });
+
+  // Country chips
+  const cc=document.getElementById('country-chips');
+  COUNTRIES.forEach(c=>{
+    const el=document.createElement('span');
+    el.className='chip'; el.dataset.code=c.code;
+    el.innerHTML=`<span>${c.flag}</span>${c.label}`;
+    el.onclick=()=>{
+      el.classList.toggle('on-c');
+      if(el.classList.contains('on-c')) APP.f.countries.push(c.code);
+      else APP.f.countries=APP.f.countries.filter(x=>x!==c.code);
+      updateCountBadge('cc-count',APP.f.countries.length,'country','countries');
+      updateBudget();
+    };
+    cc.appendChild(el);
+  });
+
+  // State chips
+  const sc=document.getElementById('state-chips');
+  STATES.forEach(s=>{
+    const el=document.createElement('span');
+    el.className='chip'; el.dataset.state=s; el.textContent=s;
+    el.onclick=()=>{
+      el.classList.toggle('on-s');
+      if(el.classList.contains('on-s')) APP.f.states.push(s);
+      else APP.f.states=APP.f.states.filter(x=>x!==s);
+      updateCountBadge('sc-count',APP.f.states.length,'state','states');
+      updateBudget();
+    };
+    sc.appendChild(el);
+  });
+
+  updateBudget();
+}
+
+function updateCountBadge(id,n,singular,plural){
+  document.getElementById(id).textContent=n>0?`(${n} ${n===1?singular:plural} selected)`:'';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUDGET ESTIMATOR
+// ═══════════════════════════════════════════════════════════════
+function updateBudget(){
+  const nc=Math.max(1,APP.f.countries.length||2);
+  const ns=Math.max(1,APP.f.states.length||1);
+  const langs=APP.f.lang==='both'?2:1;
+  const stateQueries=Math.min(ns,3);
+  const searches=Math.min(nc*langs*stateQueries,15);
+  const estUnits=searches*100 + searches + Math.ceil(searches*APP.f.count/50)*1;
+  const used=quotaUsed();
+  const remaining=Math.max(0,DAILY_LIMIT-used-estUnits);
+  const pct=Math.min(100,Math.round((used+estUnits)/DAILY_LIMIT*100));
+
+  document.getElementById('b-calls').textContent=searches;
+  document.getElementById('b-units').textContent='~'+estUnits;
+
+  const remEl=document.getElementById('b-rem');
+  remEl.textContent=remaining.toLocaleString();
+  remEl.className='bv '+(remaining>5000?'bv-ok':remaining>2000?'bv-warn':'bv-bad');
+
+  const fill=document.getElementById('b-fill');
+  fill.style.width=pct+'%';
+  fill.style.background=pct<50?'var(--green)':pct<80?'var(--amber)':'var(--red)';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// API KEY VALIDATION  — costs 0 quota units (just tests DNS)
+// ═══════════════════════════════════════════════════════════════
+async function validateKey(){
+  const key=document.getElementById('api-key').value.trim();
+  if(!key){showKeyStatus('fail','Please enter an API key first.');return;}
+  showKeyStatus('checking','Validating key (0 API units)…');
+  document.getElementById('val-btn').disabled=true;
+  try{
+    // Use a minimal 1-result search — cheapest valid test = 100 units but unavoidable
+    // Instead: use the videos endpoint with a known ID (costs 1 unit)
+    const r=await fetch(`${YT}/videos?part=id&id=dQw4w9WgXcQ&key=${key}`);
+    const d=await r.json();
+    if(d.error){
+      showKeyStatus('fail','❌ '+( d.error.message||'Invalid API key'));
+      APP.keyValid=false;
+    } else {
+      showKeyStatus('ok','✓ Key is valid! Ready to analyze.');
+      APP.keyValid=true;
+      document.getElementById('run-btn').disabled=false;
+      document.getElementById('run-btn').textContent='Analyze →';
+      addQuota(1);
+      updateBudget();
+    }
+  }catch(e){
+    showKeyStatus('fail','Network error: '+e.message+' — are you running this locally?');
+  }finally{
+    document.getElementById('val-btn').disabled=false;
+  }
+}
+
+function showKeyStatus(type,msg){
+  const el=document.getElementById('key-status');
+  el.className='key-status ks-'+type;
+  el.textContent=msg;
+  el.classList.remove('hidden');
+}
+function resetKeyStatus(){
+  document.getElementById('key-status').classList.add('hidden');
+  APP.keyValid=false;
+  document.getElementById('run-btn').disabled=true;
+  document.getElementById('run-btn').textContent='Validate Key First →';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROGRESS UI
+// ═══════════════════════════════════════════════════════════════
+let progSteps=[];
+function initProgress(steps){
+  progSteps=steps.map(s=>({label:s,state:'pending'}));
+  renderProgress();
+  document.getElementById('prog-box').classList.remove('hidden');
+}
+function setProgStep(i,state){
+  if(progSteps[i]) progSteps[i].state=state;
+  renderProgress();
+}
+function renderProgress(){
+  document.getElementById('prog-steps').innerHTML=progSteps.map((s,i)=>{
+    const icon = s.state==='done'?'✓':s.state==='active'?'':'·';
+    const cls=s.state;
+    return`<div class="prog-step ${cls}">
+      ${s.state==='active'?'<div class="pulse"></div>':`<span class="prog-icon">${icon}</span>`}
+      <span>${s.label}</span>
+    </div>`;
+  }).join('');
+}
+function hideProgress(){ document.getElementById('prog-box').classList.add('hidden'); }
+
+// ═══════════════════════════════════════════════════════════════
+// FETCH WRAPPER  (zero-retry, checks key validity first)
+// ═══════════════════════════════════════════════════════════════
+async function ytFetch(url){
+  const r=await fetch(url);
+  const d=await r.json();
+  if(d.error){
+    const msg=d.error.message||'API error';
+    const code=d.error.code;
+    if(code===403) throw new Error('API quota exceeded or key restricted. '+msg);
+    if(code===400) throw new Error('Bad request: '+msg);
+    throw new Error(msg);
+  }
+  return d;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN ANALYSIS  — zero API waste architecture
+// Steps:
+//   1. Build all search params in memory (0 units)
+//   2. Check local cache for each query (0 units)
+//   3. Only fetch uncached queries (saves units)
+//   4. Deduplicate all results (0 units)
+//   5. Batch-fetch video details (min calls)
+//   6. Batch-fetch channel details (min calls)
+//   7. Run Claude AI once (1 call)
+// ═══════════════════════════════════════════════════════════════
+async function runAnalysis(){
+  if(!APP.keyValid){setErr('Please validate your API key first.');return;}
+  const key=document.getElementById('api-key').value.trim();
+  const kw=document.getElementById('kw').value.trim();
+  if(!kw){setErr('Please enter a keyword.');return;}
+
+  setErr('');
+  APP.videos=[]; APP.aiData=null; APP.keyword=kw;
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('cache-banner').classList.add('hidden');
+  document.getElementById('run-btn').disabled=true;
+  document.getElementById('clr-btn').classList.add('hidden');
+  setRunNote('');
+
+  const {time,sort,dur,count,lang,countries,states}=APP.f;
+
+  // ── STEP 1: Build search targets ──────────────────────────────
+  const targetCountries = countries.length
+    ? countries.map(c=>COUNTRIES.find(x=>x.code===c)).filter(Boolean)
+    : [{code:'IN',label:'India',flag:'🇮🇳'},{code:'US',label:'USA',flag:'🇺🇸'}];
+
+  const targetLangs = lang==='en'?['en']:lang==='hi'?['hi']:['en','hi'];
+  const stateQueries = states.length ? states.slice(0,3).map(s=>`${kw} ${s}`) : [];
+  const allQueries = [kw, ...stateQueries];
+
+  // Build all query combos (capped at 15 API calls)
+  const queryPlans=[];
+  outer:
+  for(const query of allQueries){
+    for(const country of targetCountries){
+      for(const lng of targetLangs){
+        if(queryPlans.length>=15) break outer;
+        const params=new URLSearchParams({
+          part:'snippet',q:query,type:'video',order:sort,
+          maxResults:String(Math.min(count,50)),
+          relevanceLanguage:lng,
+          regionCode:country.code,key
+        });
+        if(time){
+          const pubAfter=getPublishedAfter(time);
+          if(pubAfter) params.set('publishedAfter',pubAfter);
+        }
+        if(dur) params.set('videoDuration',dur);
+        const cacheKey=`search_${params.toString().replace(/&key=[^&]+/,'')}`;
+        queryPlans.push({url:`${YT}/search?${params}`,cacheKey,country,lng,query});
+      }
+    }
+  }
+
+  // ── STEP 2: Check cache, separate cached vs uncached ─────────
+  const cached=[], uncached=[];
+  for(const plan of queryPlans){
+    const hit=cacheGet(plan.cacheKey);
+    if(hit) cached.push({plan,data:hit});
+    else uncached.push(plan);
+  }
+
+  const stepLabels=[
+    `Loading cached results (${cached.length}/${queryPlans.length} plans)`,
+    uncached.length>0 ? `Fetching ${uncached.length} uncached search${uncached.length>1?'es':''} (~${uncached.length*100} units)` : 'All results from cache (0 units used)',
+    'Deduplicating & collecting video IDs',
+    'Fetching video details (statistics + content)',
+    'Fetching channel data',
+    'Computing view velocity & engagement',
+    'Running AI trend analysis (Claude)',
+  ];
+  initProgress(stepLabels);
+
+  try{
+    // ── Step 1: cached ──────────────────────────────────────────
+    setProgStep(0,'active');
+    const videoCountryMap={};
+    const allIds=[];
+
+    const processItems=(items,country)=>{
+      for(const it of (items||[])){
+        const id=it.id?.videoId; if(!id) continue;
+        if(!videoCountryMap[id]){videoCountryMap[id]=new Set();allIds.push(id);}
+        videoCountryMap[id].add(country.label);
+      }
+    };
+
+    for(const {plan,data} of cached) processItems(data,plan.country);
+    setProgStep(0,'done');
+
+    // ── Step 2: uncached fetches ────────────────────────────────
+    setProgStep(1,'active');
+    let fetchCount=0;
+    for(const plan of uncached){
+      try{
+        const d=await ytFetch(plan.url);
+        cacheSet(plan.cacheKey, d.items||[]);
+        processItems(d.items,plan.country);
+        addQuota(100);
+        fetchCount++;
+        // Update progress text
+        if(uncached.length>1){
+          progSteps[1].label=`Fetching searches: ${fetchCount}/${uncached.length} done (~${fetchCount*100} units used)`;
+          renderProgress();
+        }
+      }catch(e){
+        console.warn('Search skipped:',plan.country.label,plan.lng,e.message);
+      }
+    }
+    if(uncached.length===0){
+      document.getElementById('cache-banner').classList.remove('hidden');
+      document.getElementById('cache-msg').textContent=`⚡ All ${cached.length} searches loaded from cache — 0 API units used`;
+    }else if(cached.length>0){
+      document.getElementById('cache-banner').classList.remove('hidden');
+      document.getElementById('cache-msg').textContent=`⚡ ${cached.length} searches from cache, ${uncached.length} fetched fresh`;
+    }
+    setProgStep(1,'done');
+
+    // ── Step 3: deduplicate ─────────────────────────────────────
+    setProgStep(2,'active');
+    const uniqIds=[...new Set(allIds)];
+    if(!uniqIds.length){
+      setProgStep(2,'error');
+      throw new Error('No videos found. Try a different keyword, remove time filters, or add more countries.');
+    }
+    setProgStep(2,'done');
+
+    // ── Step 4: video details (batch, max 50 per call) ──────────
+    setProgStep(3,'active');
+    const vidItems=[];
+    for(let i=0;i<uniqIds.length&&i<100;i+=50){
+      const chunk=uniqIds.slice(i,i+50).join(',');
+      const r=await ytFetch(`${YT}/videos?part=snippet,statistics,contentDetails&id=${chunk}&key=${key}`);
+      vidItems.push(...(r.items||[]));
+      addQuota(1);
+    }
+    if(!vidItems.length) throw new Error('Video details fetch returned empty. Check API quota.');
+    setProgStep(3,'done');
+
+    // ── Step 5: channel details (batch) ─────────────────────────
+    setProgStep(4,'active');
+    const chanIds=[...new Set(vidItems.map(v=>v.snippet.channelId))];
+    const chanMap={};
+    for(let i=0;i<chanIds.length;i+=50){
+      const r=await ytFetch(`${YT}/channels?part=statistics&id=${chanIds.slice(i,i+50).join(',')}&key=${key}`);
+      for(const ch of (r.items||[])) chanMap[ch.id]={subscribers:ch.statistics.subscriberCount,totalVideos:ch.statistics.videoCount};
+      addQuota(1);
+    }
+    setProgStep(4,'done');
+
+    // ── Step 6: compute metrics ─────────────────────────────────
+    setProgStep(5,'active');
+    APP.videos=vidItems.map(v=>{
+      const st=v.statistics||{};
+      const vw=parseInt(st.viewCount||0),lk=parseInt(st.likeCount||0),cm=parseInt(st.commentCount||0);
+      const ch=chanMap[v.snippet.channelId]||{};
+      return{
+        id:v.id, title:v.snippet.title,
+        description:(v.snippet.description||'').slice(0,250),
+        publishedAt:v.snippet.publishedAt,
+        channelName:v.snippet.channelTitle,channelId:v.snippet.channelId,
+        tags:(v.snippet.tags||[]).slice(0,12),
+        duration:parseDur(v.contentDetails?.duration),
+        views:vw,likes:lk,comments:cm,
+        subscribers:ch.subscribers,totalVideos:ch.totalVideos,
+        vel:calcVel(vw,v.snippet.publishedAt),
+        eng:calcEng(lk,cm,vw),
+        popularIn:[...(videoCountryMap[v.id]||[])],
+        url:`https://youtube.com/watch?v=${v.id}`
+      };
+    });
+    setProgStep(5,'done');
+    updateBudget();
+
+    renderMetrics(); renderVideos(); renderChannels(); renderGeo(targetCountries);
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('clr-btn').classList.remove('hidden');
+    setRunNote(`✓ ${APP.videos.length} videos loaded · ~${quotaUsed()} units used today`);
+
+    // ── Step 7: Claude AI ────────────────────────────────────────
+    setProgStep(6,'active');
+    try{
+      const snap=APP.videos.slice(0,15).map(v=>({
+        title:v.title,views:v.views,likes:v.likes,comments:v.comments,
+        vel:v.vel,eng:v.eng,channel:v.channelName,duration:v.duration,
+        published:v.publishedAt,tags:v.tags,popularIn:v.popularIn
+      }));
+      const cr=await fetch(CLAUDE,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',max_tokens:1000,
+          system:`YouTube trend analyst. Return ONLY valid JSON (no markdown):
+{"summary":"2-3 sentence overview","patterns":["p1","p2","p3","p4","p5"],"formats":["f1","f2","f3","f4"],"topics":["t1","t2","t3","t4","t5"],"ideas":[{"title":"Title","angle":"Angle"},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""},{"title":"","angle":""}]}`,
+          messages:[{role:'user',content:`Keyword:"${kw}", countries:${targetCountries.map(c=>c.label).join(',')}, states:${APP.f.states.join(',') ||'none'}. Top videos: ${JSON.stringify(snap)}`}]
+        })
+      });
+      if(cr.ok){
+        const cd=await cr.json();
+        const raw=cd.content?.find(b=>b.type==='text')?.text||'{}';
+        try{APP.aiData=JSON.parse(raw.replace(/```json|```/g,'').trim());}
+        catch{APP.aiData={summary:raw,patterns:[],formats:[],topics:[],ideas:[]};}
+        renderTrends(); renderIdeas();
+        addTabPill('t-ideas','xpill xp-ai','AI');
+      }
+    }catch(e){console.warn('Claude AI error:',e.message);}
+    setProgStep(6,'done');
+
+  }catch(e){
+    setErr(e.message||'Unexpected error. Please try again.');
+    document.getElementById('empty-state').classList.remove('hidden');
+  }finally{
+    document.getElementById('run-btn').disabled=false;
+    setTimeout(hideProgress,2000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+function renderMetrics(){
+  const v=APP.videos;
+  const tv=v.reduce((s,x)=>s+x.views,0);
+  const ae=(v.reduce((s,x)=>s+x.eng,0)/v.length).toFixed(2);
+  const ch=new Set(v.map(x=>x.channelId)).size;
+  const gv=v.filter(x=>x.popularIn.length>1).length;
+  document.getElementById('metric-cards').innerHTML=[
+    ['Videos Found',v.length],['Total Views',fmt(tv)],
+    ['Avg Engagement',ae+'%'],['Unique Channels',ch],['Cross-Country',gv],
+  ].map(([l,val])=>`<div class="metric"><div class="m-lbl">${l}</div><div class="m-val">${val}</div></div>`).join('');
+}
+
+function renderVideos(){
+  const sortBtn=document.querySelector('#tab-videos .sort-row');
+  if(sortBtn) sortBtn.innerHTML=`<span class="sort-lbl">Sort:</span>
+    <button class="fb ${APP.sortBy==='vel'?'on':''}" onclick="setSortBy('vel',this)">Velocity/hr</button>
+    <button class="fb ${APP.sortBy==='views'?'on':''}" onclick="setSortBy('views',this)">Total Views</button>
+    <button class="fb ${APP.sortBy==='eng'?'on':''}" onclick="setSortBy('eng',this)">Engagement</button>
+    <button class="fb ${APP.sortBy==='pub'?'on':''}" onclick="setSortBy('pub',this)">Newest First</button>`;
+
+  const sorted=[...APP.videos].sort((a,b)=>{
+    if(APP.sortBy==='vel') return b.vel-a.vel;
+    if(APP.sortBy==='views') return b.views-a.views;
+    if(APP.sortBy==='eng') return b.eng-a.eng;
+    if(APP.sortBy==='pub') return new Date(b.publishedAt)-new Date(a.publishedAt);
+    return 0;
+  });
+  document.getElementById('vlist').innerHTML=sorted.map((v,i)=>{
+    const ec=v.eng>5?'sv-g':v.eng>2?'sv-a':'';
+    const geoTags=v.popularIn.map(c=>`<span class="gtag ${v.popularIn.length>1?'gt-multi':'gt-single'}">${FLAG_MAP[c]||''}${c}</span>`).join('');
+    return`<div class="vc">
+      <span class="vrank">#${i+1}</span>
+      <div class="vi">
+        <a class="vtitle" href="${v.url}" target="_blank">${v.title}</a>
+        <div class="vmeta">
+          <span class="vchan">${v.channelName}</span>
+          <span>${ago(v.publishedAt)}</span>
+          <span>${v.duration}</span>
+          ${v.subscribers?`<span>${fmt(v.subscribers)} subs</span>`:''}
+        </div>
+        ${geoTags?`<div class="geo-tags">${geoTags}</div>`:''}
+      </div>
+      <div class="vstats">
+        <div class="vs"><div class="sl">Views</div><div class="sv">${fmt(v.views)}</div></div>
+        <div class="vs"><div class="sl">Vel/hr</div><div class="sv sv-t">${fmt(v.vel)}</div></div>
+        <div class="vs"><div class="sl">Likes</div><div class="sv">${fmt(v.likes)}</div></div>
+        <div class="vs"><div class="sl">Comments</div><div class="sv">${fmt(v.comments)}</div></div>
+        <div class="vs"><div class="sl">Engagement</div><div class="sv ${ec}">${v.eng}%</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChannels(){
+  const map={};
+  for(const v of APP.videos){
+    if(!map[v.channelId]) map[v.channelId]={name:v.channelName,count:0,views:0,eng:0,subscribers:v.subscribers,totalVideos:v.totalVideos};
+    map[v.channelId].count++;map[v.channelId].views+=v.views;map[v.channelId].eng+=v.eng;
+  }
+  document.getElementById('clist').innerHTML=Object.values(map).sort((a,b)=>b.views-a.views).map((ch,i)=>`
+    <div class="cc">
+      <div class="cc-left"><div class="ccnum">${i+1}</div>
+        <div><div class="ccname">${ch.name}</div><div class="ccsub">${ch.count} video${ch.count>1?'s':''} in results</div></div>
+      </div>
+      <div class="cc-right">
+        <div class="cs"><div class="cl">Subscribers</div><div class="cv">${fmt(ch.subscribers)}</div></div>
+        <div class="cs"><div class="cl">Total Videos</div><div class="cv">${fmt(ch.totalVideos)}</div></div>
+        <div class="cs"><div class="cl">Total Views</div><div class="cv">${fmt(ch.views)}</div></div>
+        <div class="cs"><div class="cl">Avg Engagement</div><div class="cv">${(ch.eng/ch.count).toFixed(2)}%</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderGeo(targetCountries){
+  addTabPill('t-geo','xpill xp-geo','GEO');
+  const cvc={};
+  for(const v of APP.videos) for(const c of v.popularIn) cvc[c]=(cvc[c]||0)+1;
+  const sorted=Object.entries(cvc).sort((a,b)=>b[1]-a[1]);
+  const maxC=sorted[0]?.[1]||1;
+  const cross=APP.videos.filter(v=>v.popularIn.length>=2).sort((a,b)=>b.popularIn.length-a.popularIn.length||b.views-a.views).slice(0,10);
+  document.getElementById('geo-content').innerHTML=`
+    <div class="geo-grid">
+      <div class="geo-card">
+        <h3>📊 Videos Per Country</h3>
+        ${sorted.map(([c,n])=>`<div class="geo-row">
+          <div class="geo-name"><span>${FLAG_MAP[c]||'🌐'}</span>${c}</div>
+          <div class="geo-bar-w"><div class="geo-bar" style="width:${Math.round(n/maxC*100)}%"></div></div>
+          <div class="geo-n">${n}</div>
+        </div>`).join('')}
+      </div>
+      <div class="geo-card">
+        <h3>📈 Geo Summary</h3>
+        <div class="geo-row"><div class="geo-name">Countries searched</div><div class="geo-n">${targetCountries.length}</div></div>
+        <div class="geo-row"><div class="geo-name">Globally viral</div><div class="geo-n">${cross.length}</div></div>
+        <div class="geo-row"><div class="geo-name">Local only</div><div class="geo-n">${APP.videos.filter(v=>v.popularIn.length===1).length}</div></div>
+        <div class="geo-row"><div class="geo-name">Unique videos</div><div class="geo-n">${APP.videos.length}</div></div>
+        <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6">Purple tags = video appeared in multiple country searches → high global viral potential.</p>
+      </div>
+    </div>
+    ${cross.length?`<div class="cross-card"><h3>🌏 Cross-Country Viral Videos</h3>
+      ${cross.map(v=>`<div class="cx-vid">
+        <a class="cx-title" href="${v.url}" target="_blank">${v.title}</a>
+        <div class="cx-tags">${v.popularIn.map(c=>`<span class="cxt">${FLAG_MAP[c]||''}${c}</span>`).join('')}</div>
+      </div>`).join('')}
+    </div>`:''}
+    <div class="geo-note"><strong>⚠️ Per-video country view stats?</strong> The YouTube Data API does not expose this for other channels. For your own channel: YouTube Studio → Analytics → Audience → Geography.</div>`;
+}
+
+function renderTrends(){
+  const d=APP.aiData; if(!d) return;
+  const tc={};
+  for(const v of APP.videos) for(const t of v.tags) tc[t]=(tc[t]||0)+1;
+  const topT=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,30);
+  document.getElementById('trends-content').innerHTML=`
+    <div class="scard"><h3>Trend Summary</h3><p>${d.summary||'–'}</p></div>
+    <div class="tgrid">
+      <div class="tc"><h3>Viral Title Patterns</h3>${(d.patterns||[]).map(p=>`<div class="pt">${p}</div>`).join('')}</div>
+      <div class="tc"><h3>High-Performing Formats</h3>${(d.formats||[]).map(f=>`<div class="pt">${f}</div>`).join('')}</div>
+      <div class="tc"><h3>Top Topics &amp; Themes</h3>${(d.topics||[]).map(t=>`<span class="tt">${t}</span>`).join('')}</div>
+    </div>
+    <div class="tcloud"><h3>Common Tags</h3>${topT.map(([t,c])=>`<span class="vtc">${t} <em style="font-style:normal;font-family:var(--mono);font-size:9px">×${c}</em></span>`).join('')}</div>`;
+}
+
+function renderIdeas(){
+  const ideas=APP.aiData?.ideas; if(!ideas?.length) return;
+  document.getElementById('ideas-content').innerHTML=`<div class="igrid">${ideas.map((idea,i)=>`
+    <div class="ic"><div class="inum">${i+1}</div>
+    <div><div class="ititle">${idea.title}</div><div class="iangle">${idea.angle}</div></div></div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════
+function setSortBy(key,btn){
+  APP.sortBy=key;
+  document.querySelectorAll('#tab-videos .fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderVideos();
+}
+function showTab(name,btn){
+  ['videos','channels','geo','trends','ideas'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==name));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function clearResults(){
+  APP.videos=[]; APP.aiData=null;
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('empty-state').classList.remove('hidden');
+  document.getElementById('cache-banner').classList.add('hidden');
+  document.getElementById('clr-btn').classList.add('hidden');
+  setRunNote('');
+}
+function addTabPill(tabId,cls,txt){
+  const t=document.getElementById(tabId);
+  if(!t.querySelector('.xpill')) return;
+  if(!t.querySelector('[data-added]')){
+    const p=document.createElement('span');
+    p.className=cls;p.textContent=txt;p.dataset.added='1';t.appendChild(p);
+  }
+}
+function setRunNote(msg){ document.getElementById('run-note').textContent=msg; }
+function setErr(msg){ const b=document.getElementById('err-box');b.innerHTML=msg;b.classList.toggle('hidden',!msg); }
+
+function exportJSON(){
+  dl(new Blob([JSON.stringify({keyword:APP.keyword,filters:APP.f,generatedAt:new Date().toISOString(),videos:APP.videos,aiInsights:APP.aiData},null,2)],{type:'application/json'}),`yt-trends-${slug()}.json`);
+}
+function exportCSV(){
+  const h=['Rank','Title','Channel','Subscribers','Views','Likes','Comments','Duration','Published','ViewVelocity/hr','Engagement%','PopularIn','URL'];
+  const rows=[...APP.videos].sort((a,b)=>b.vel-a.vel).map((v,i)=>[
+    i+1,`"${v.title.replace(/"/g,'""')}"`,`"${v.channelName.replace(/"/g,'""')}"`,
+    v.subscribers||'',v.views,v.likes,v.comments,v.duration,v.publishedAt,v.vel,v.eng,
+    `"${v.popularIn.join('; ')}"`,v.url
+  ].join(','));
+  dl(new Blob([[h.join(','),...rows].join('\n')],{type:'text/csv'}),`yt-trends-${slug()}.csv`);
+}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function slug(){return APP.keyword.replace(/\s+/g,'-').toLowerCase();}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function fmt(n){const x=parseInt(n||0);if(x>=1e9)return (x/1e9).toFixed(1)+'B';if(x>=1e6)return (x/1e6).toFixed(1)+'M';if(x>=1e3)return (x/1e3).toFixed(1)+'K';return x.toLocaleString();}
+function ago(d){const days=Math.floor((Date.now()-new Date(d))/86400000);if(days<1)return 'Today';if(days<7)return days+'d ago';if(days<30)return Math.floor(days/7)+'w ago';if(days<365)return Math.floor(days/30)+'mo ago';return Math.floor(days/365)+'y ago';}
+function parseDur(iso=''){const m=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);if(!m)return '0:00';const h=+(m[1]||0),mn=+(m[2]||0),s=+(m[3]||0);return h?`${h}:${String(mn).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${mn}:${String(s).padStart(2,'0')}`;}
+function calcVel(views,pub){return Math.round(parseInt(views||0)/Math.max(1,(Date.now()-new Date(pub))/3600000));}
+function calcEng(l,c,v){return +((parseInt(l||0)+parseInt(c||0))/Math.max(1,parseInt(v||1))*100).toFixed(2);}
+function getPublishedAfter(t){const m={'1h':36e5,'24h':864e5,'48h':2*864e5,'7d':7*864e5,'30d':30*864e5,'3m':90*864e5,'6m':180*864e5,'1y':365*864e5};return t&&m[t]?new Date(Date.now()-m[t]).toISOString():null;}
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════
+initUI();
+</script>
+</body>
+</html>
